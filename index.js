@@ -272,13 +272,24 @@ function computeStats(graph) {
 }
 
 // ---------- 把用户输入的目标参数归一化到图内节点 ----------
-function resolveTargetArg(arg, nodes) {
+function resolveTargetArg(arg, nodes, root) {
   if (!arg) return null;
   let t = arg;
+  // 绝对路径 → 折算成相对仓库根的路径（小白常直接粘贴 IDE 里的绝对路径）
+  if (path.isAbsolute(t)) {
+    t = path.posix.relative(toPosix(root || '.'), toPosix(t));
+  }
   if (t.startsWith('./')) t = t.slice(2);
   t = toPosix(t);
   t = path.posix.normalize(t);
   if (nodes.has(t)) return t;
+  // 纯文件名（无路径分隔，如 c.js）→ 在仓库内按 basename 递归查找
+  if (!t.includes('/')) {
+    const base = path.posix.basename(t);
+    for (const n of nodes) {
+      if (path.posix.basename(n) === base) return n;
+    }
+  }
   for (const s of RESOLVE_SUFFIXES) {
     if (nodes.has(t + s)) return t + s;
   }
@@ -411,14 +422,14 @@ function main() {
       process.exit(r.ok ? 0 : 1);
     }
     case 'impact': {
-      const t = resolveTargetArg(target, graph.nodes);
+      const t = resolveTargetArg(target, graph.nodes, root);
       if (!t) {
         const raw = target.startsWith('./') ? target.slice(2) : target;
         const cand = path.join(root, toPosix(raw));
         if (fs.existsSync(cand)) {
-          console.error('找不到目标文件: ' + target + '（路径存在，但不是受支持的源文件类型）');
+          console.error('找不到目标文件: ' + target + '（路径存在，但不是受支持的源文件类型；支持 ' + [...SUPPORTED_EXT].join(' ') + '）');
         } else {
-          console.error('找不到目标文件: ' + target);
+          console.error('找不到目标文件: ' + target + '\n  提示：请用相对仓库根的路径（如 src/c.js），或项目内的文件名（如 c.js）。');
         }
         process.exit(2);
       }
@@ -434,8 +445,11 @@ function main() {
       process.exit(0);
     }
     case 'why': {
-      const t = resolveTargetArg(target, graph.nodes);
-      if (!t) { console.error('找不到目标文件: ' + target); process.exit(2); }
+      const t = resolveTargetArg(target, graph.nodes, root);
+      if (!t) {
+        console.error('找不到目标文件: ' + target + '\n  提示：请用相对仓库根的路径（如 src/c.js），或项目内的文件名（如 c.js）。');
+        process.exit(2);
+      }
       const ups = directImporters(t, graph.radj);
       if (flags.json) {
         console.log(JSON.stringify({ target: t, importers: ups, count: ups.length }, null, 2));
