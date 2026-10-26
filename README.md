@@ -1,3 +1,5 @@
+**🔧 Part of the [Engineering Health Family](https://github.com/huanweide/family-showcase)** (18 zero-dependency checkup axes). Standalone tool — see [doctors](https://github.com/huanweide/doctors) (monorepo) and [enghealth](https://github.com/huanweide/enghealth) (unified runner).
+
 # chaineye（依赖链眼）—— 改代码之前，先看清会连累谁
 
 > 一句话：你改了一个文件，它能立刻告诉你「还有哪些文件会跟着坏」。
