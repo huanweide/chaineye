@@ -93,13 +93,13 @@ npx chaineye . --max-cycles 0 --fail-on-cycle
 
 ## 许可
 
-[MIT](./LICENSE) © Overlord Forge
+[MIT](./LICENSE) © huanweide
 
 ---
 
 ## 作者
 
-由 **ReTr · huanweide** 维护 · [GitHub 主页](https://github.com/huanweide)
+由 **huanweide** 维护 · [GitHub 主页](https://github.com/huanweide)
 
 ## CI 门禁用法
 
